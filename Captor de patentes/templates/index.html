@@ -176,6 +176,57 @@
             font-size: .86rem;
         }
 
+        .camera-panel {
+            margin-top: 18px;
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            background: var(--navy);
+        }
+
+        .camera-frame {
+            position: relative;
+            overflow: hidden;
+            aspect-ratio: 4 / 3;
+            background: #020b18;
+        }
+
+        .camera-frame video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .roi-guide {
+            position: absolute;
+            top: 25%;
+            left: 10%;
+            width: 80%;
+            height: 50%;
+            border: 3px solid var(--cta-blue);
+            border-radius: 10px;
+            box-shadow: 0 0 0 999px rgba(8, 28, 56, .48);
+            pointer-events: none;
+        }
+
+        .roi-guide::after {
+            position: absolute;
+            right: 0;
+            bottom: -30px;
+            left: 0;
+            color: var(--white);
+            content: 'Ubica la patente dentro del marco';
+            font-size: .78rem;
+            text-align: center;
+        }
+
+        .camera-actions {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            padding: 12px;
+        }
+
         .process-button {
             margin-top: 18px;
         }
@@ -326,9 +377,18 @@
                                 <button type="button" class="btn btn-primary" id="btnCamera">Tomar foto</button>
                                 <button type="button" class="btn btn-outline-primary" id="btnFile">Subir archivo</button>
                             </div>
-                            <input type="file" class="d-none" id="cameraInput" accept="image/*" capture="environment">
                             <input type="file" class="d-none" id="fileInput" accept="image/*">
                             <div class="file-note" id="selectedFileName">Ninguna imagen seleccionada</div>
+                            <div class="camera-panel d-none" id="cameraPanel">
+                                <div class="camera-frame">
+                                    <video id="cameraPreview" autoplay playsinline muted></video>
+                                    <div class="roi-guide"></div>
+                                </div>
+                                <div class="camera-actions">
+                                    <button type="button" class="btn btn-primary" id="btnCapture">Capturar patente</button>
+                                    <button type="button" class="btn btn-outline-light" id="btnCloseCamera">Cerrar cámara</button>
+                                </div>
+                            </div>
                         </div>
                         <button type="submit" class="btn btn-primary w-100 process-button" id="btnProcess">Procesar imagen</button>
                         <div class="small mt-2 text-center" id="processStatus" role="status"></div>
@@ -382,15 +442,17 @@
 <script>
 const uploadForm = document.getElementById('uploadForm');
 const resultCard = document.getElementById('resultCard');
-const cameraInput = document.getElementById('cameraInput');
 const fileInput = document.getElementById('fileInput');
 const selectedFileName = document.getElementById('selectedFileName');
 const processStatus = document.getElementById('processStatus');
 const saveStatus = document.getElementById('saveStatus');
+const cameraPanel = document.getElementById('cameraPanel');
+const cameraPreview = document.getElementById('cameraPreview');
 const reviewCard = document.getElementById('reviewCard');
 const plateList = document.getElementById('plateList');
 const listStatus = document.getElementById('listStatus');
 let selectedFile = null;
+let cameraStream = null;
 let pendingPlates = [];
 
 function normalizePlate(value) {
@@ -414,15 +476,72 @@ function prepareImage(file) {
     });
 }
 
-document.getElementById('btnCamera').addEventListener('click', () => cameraInput.click());
+document.getElementById('btnCamera').addEventListener('click', async () => {
+    if (!navigator.mediaDevices?.getUserMedia || !window.isSecureContext) {
+        processStatus.textContent = 'La cámara integrada requiere HTTPS o la aplicación instalada.';
+        processStatus.className = 'small mt-2 text-center text-danger';
+        return;
+    }
+
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: { ideal: 'environment' } },
+            audio: false
+        });
+        cameraPreview.srcObject = cameraStream;
+        cameraPanel.classList.remove('d-none');
+        processStatus.textContent = 'Alinea la patente dentro del marco azul.';
+        processStatus.className = 'small mt-2 text-center text-primary';
+    } catch (error) {
+        processStatus.textContent = 'No se pudo abrir la cámara integrada. Revisa el permiso de cámara.';
+        processStatus.className = 'small mt-2 text-center text-danger';
+    }
+});
 document.getElementById('btnFile').addEventListener('click', () => fileInput.click());
+
+function closeCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach((track) => track.stop());
+        cameraStream = null;
+    }
+    cameraPreview.srcObject = null;
+    cameraPanel.classList.add('d-none');
+}
+
+document.getElementById('btnCloseCamera').addEventListener('click', closeCamera);
+
+document.getElementById('btnCapture').addEventListener('click', () => {
+    if (!cameraPreview.videoWidth || !cameraPreview.videoHeight) return;
+
+    const crop = {
+        x: Math.round(cameraPreview.videoWidth * .10),
+        y: Math.round(cameraPreview.videoHeight * .25),
+        width: Math.round(cameraPreview.videoWidth * .80),
+        height: Math.round(cameraPreview.videoHeight * .50)
+    };
+    const canvas = document.createElement('canvas');
+    canvas.width = crop.width;
+    canvas.height = crop.height;
+    canvas.getContext('2d').drawImage(
+        cameraPreview,
+        crop.x, crop.y, crop.width, crop.height,
+        0, 0, crop.width, crop.height
+    );
+    canvas.toBlob((blob) => {
+        if (!blob) return;
+        selectedFile = new File([blob], 'patente-roi.jpg', { type: 'image/jpeg' });
+        selectedFileName.textContent = 'Captura ROI lista para procesar';
+        closeCamera();
+        processStatus.textContent = 'Área capturada. Presiona Procesar imagen.';
+        processStatus.className = 'small mt-2 text-center text-success';
+    }, 'image/jpeg', .88);
+});
 
 function setSelectedFile(file) {
     selectedFile = file;
     selectedFileName.textContent = file ? `Seleccionado: ${file.name}` : 'Ninguna imagen seleccionada';
 }
 
-cameraInput.addEventListener('change', () => setSelectedFile(cameraInput.files[0]));
 fileInput.addEventListener('change', () => setSelectedFile(fileInput.files[0]));
 
 uploadForm.addEventListener('submit', async (e) => {

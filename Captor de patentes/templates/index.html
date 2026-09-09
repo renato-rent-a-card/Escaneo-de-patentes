@@ -10,36 +10,58 @@
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --ink: #17252b;
-            --muted: #68767a;
-            --paper: #f5f7f4;
-            --line: #dce5e1;
-            --teal: #087f78;
-            --teal-dark: #05615d;
-            --mint: #e4f3ee;
+            --electric-blue: #0062FF;
+            --cta-blue: #0075FF;
+            --soft-blue: #E5F0FF;
+            --navy: #081C38;
+            --paper: #F4F6FA;
+            --white: #FFFFFF;
+            --tab-blue: #EBF3FE;
+            --ink: #1E293B;
+            --muted: #64748B;
+            --help: #94A3B8;
+            --line: #E2E8F0;
+            --confirmed-bg: #D1FAE5;
+            --confirmed-text: #065F46;
         }
 
         body {
             min-height: 100vh;
             color: var(--ink);
             font-family: 'DM Sans', sans-serif;
-            background: radial-gradient(circle at 10% 0%, #e7f3ee 0, transparent 36%), var(--paper);
+            background: var(--paper);
         }
 
         .app-shell {
             max-width: 1040px;
-            padding: 56px 20px 72px;
+            padding: 0 20px 72px;
         }
 
         .brand-mark {
             display: inline-flex;
             align-items: center;
             gap: 9px;
-            color: var(--teal);
+            color: var(--white);
             font-size: .78rem;
             font-weight: 700;
             letter-spacing: .12em;
             text-transform: uppercase;
+        }
+
+        .brand-logo {
+            display: block;
+            width: min(100%, 330px);
+            height: 92px;
+            margin: 0 auto 20px;
+            padding: 8px 14px;
+            border-radius: 9px;
+            background: var(--white);
+            box-shadow: 0 6px 16px rgba(8, 28, 56, .14);
+            object-fit: contain;
+        }
+
+        .brand-mark {
+            display: none;
         }
 
         .brand-mark::before {
@@ -47,8 +69,8 @@
             height: 10px;
             content: '';
             border-radius: 50%;
-            background: #ee9f48;
-            box-shadow: 0 0 0 5px #f9e7d3;
+            background: var(--white);
+            box-shadow: 0 0 0 5px rgba(255, 255, 255, .2);
         }
 
         h1, h2, h5 {
@@ -56,40 +78,46 @@
         }
 
         .page-heading {
-            max-width: 600px;
-            margin: 16px auto 34px;
+            max-width: 760px;
+            margin: 0 auto 34px;
+            padding: 28px 24px 32px;
             text-align: center;
+            border-radius: 0 0 18px 18px;
+            background: var(--electric-blue);
+            box-shadow: 0 12px 28px rgba(0, 98, 255, .16);
         }
 
         .page-heading h1 {
-            margin-bottom: 10px;
-            font-size: 3rem;
+            margin: 0 0 8px;
+            color: var(--white);
+            font-size: 2.55rem;
+            line-height: 1.08;
             letter-spacing: 0;
         }
 
         .page-heading p {
             margin: 0;
-            color: var(--muted);
-            font-size: 1.02rem;
+            color: rgba(255, 255, 255, .84);
+            font-size: .98rem;
         }
 
         .workflow-card {
-            max-width: 680px;
+            max-width: 720px;
             margin: 0 auto;
             overflow: hidden;
             border: 1px solid var(--line);
-            border-radius: 18px;
-            background: rgba(255, 255, 255, .88);
-            box-shadow: 0 18px 45px rgba(23, 67, 63, .08);
+            border-radius: 14px;
+            background: var(--white);
+            box-shadow: 0 18px 45px rgba(8, 28, 56, .08);
         }
 
         .workflow-card .card-body {
-            padding: clamp(24px, 5vw, 42px);
+            padding: 34px;
         }
 
         .section-kicker {
             margin-bottom: 7px;
-            color: var(--teal);
+            color: var(--electric-blue);
             font-size: .76rem;
             font-weight: 700;
             letter-spacing: .1em;
@@ -97,8 +125,8 @@
         }
 
         .section-title {
-            margin-bottom: 24px;
-            font-size: 1.45rem;
+            margin-bottom: 20px;
+            font-size: 1.35rem;
         }
 
         .upload-actions {
@@ -109,29 +137,36 @@
 
         .btn {
             min-height: 48px;
-            border-radius: 10px;
+            border-radius: 9px;
             font-weight: 600;
+            transition: transform .18s ease, box-shadow .18s ease, background-color .18s ease;
+        }
+
+        .btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 14px rgba(8, 28, 56, .12);
         }
 
         .btn-primary {
-            border-color: var(--teal);
-            background: var(--teal);
+            border-color: var(--cta-blue);
+            background: var(--cta-blue);
         }
 
         .btn-primary:hover, .btn-primary:focus {
-            border-color: var(--teal-dark);
-            background: var(--teal-dark);
+            border-color: var(--electric-blue);
+            background: var(--electric-blue);
         }
 
         .btn-outline-primary {
-            color: var(--teal);
-            border-color: #9bcac1;
+            color: var(--electric-blue);
+            border-color: var(--electric-blue);
+            background: var(--tab-blue);
         }
 
         .btn-outline-primary:hover, .btn-outline-primary:focus {
-            color: var(--teal-dark);
-            border-color: #9bcac1;
-            background: var(--mint);
+            color: var(--electric-blue);
+            border-color: var(--electric-blue);
+            background: var(--soft-blue);
         }
 
         .file-note {
@@ -157,27 +192,95 @@
             display: block;
             width: 100%;
             max-height: 260px;
+            min-height: 150px;
+            margin: 0 auto 18px;
+            border-radius: 10px !important;
             object-fit: contain;
             border: 1px solid var(--line) !important;
-            background: #eef3f0;
+            background: var(--tab-blue);
         }
 
         #confidenceBadge {
             padding: 8px 12px;
-            color: var(--teal-dark);
-            background: var(--mint);
+            border-radius: 999px;
+            color: var(--navy);
+            background: var(--soft-blue);
             font-weight: 600;
         }
 
         #finalText {
-            border-color: #b7cbc5;
+            border-color: var(--line);
+            background: var(--white);
             border-radius: 10px;
+            min-height: 56px;
             letter-spacing: 3px;
         }
 
         #finalText:focus {
-            border-color: var(--teal);
-            box-shadow: 0 0 0 .2rem rgba(8, 127, 120, .12);
+            border-color: var(--cta-blue);
+            box-shadow: 0 0 0 .2rem rgba(0, 117, 255, .14);
+        }
+
+        .review-list {
+            max-width: 680px;
+            margin: 20px auto 0;
+        }
+
+        .review-list .card-body {
+            padding: 28px 34px;
+        }
+
+        .plate-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            padding: 13px 0;
+            border-bottom: 1px solid var(--line);
+        }
+
+        .plate-row:last-child {
+            border-bottom: 0;
+        }
+
+        .plate-value {
+            font-family: 'Space Grotesk', sans-serif;
+            font-size: 1.2rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+        }
+
+        .plate-meta {
+            color: var(--muted);
+            font-size: .82rem;
+        }
+
+        .duplicate-row {
+            margin: 0 -10px;
+            padding-right: 10px;
+            padding-left: 10px;
+            border-radius: 8px;
+            background: var(--soft-blue);
+        }
+
+        .empty-list {
+            color: var(--muted);
+            text-align: center;
+        }
+
+        .btn-success {
+            border-color: var(--confirmed-text);
+            background: var(--confirmed-text);
+        }
+
+        .btn-success:hover, .btn-success:focus {
+            border-color: #047857;
+            background: #047857;
+        }
+
+        #listStatus.text-success,
+        #saveStatus.text-success {
+            color: var(--confirmed-text) !important;
         }
 
         @media (max-width: 520px) {
@@ -186,7 +289,12 @@
             }
 
             .page-heading h1 {
-                font-size: 2.2rem;
+                font-size: 2rem;
+            }
+
+            .workflow-card .card-body,
+            .review-list .card-body {
+                padding: 26px 22px;
             }
 
             .upload-actions {
@@ -199,6 +307,7 @@
 
 <main class="container app-shell">
     <header class="page-heading">
+        <img class="brand-logo" src="/static/chulean-logo.png" alt="Chilean Leasing operativo - rent a car">
         <div class="brand-mark">Captor de patentes</div>
         <h1>Verificación de patentes</h1>
         <p>Sube una imagen para leerla y confirmar el resultado.</p>
@@ -247,9 +356,22 @@
                             <input type="text" class="form-control form-control-lg text-center fw-bold" id="finalText" pattern="[A-Za-z0-9]+" inputmode="text" autocomplete="off" style="letter-spacing: 2px; text-transform: uppercase;" required>
                         </div>
 
-                        <button type="submit" class="btn btn-success w-100">Confirmar y Guardar</button>
+                        <button type="submit" class="btn btn-primary w-100">Agregar a la lista</button>
                         <div class="small mt-2" id="saveStatus" role="status"></div>
                     </form>
+                </div>
+            </div>
+
+            <div class="card workflow-card review-list d-none" id="reviewCard">
+                <div class="card-body">
+                    <div class="section-kicker">Paso 3</div>
+                    <h2 class="section-title">Lista para confirmar</h2>
+                    <div id="plateList"></div>
+                    <div class="d-grid gap-2 mt-3">
+                        <button type="button" class="btn btn-outline-primary" id="btnRemoveDuplicates">Eliminar repetidas</button>
+                        <button type="button" class="btn btn-success" id="btnConfirmList">Confirmar y guardar lista</button>
+                    </div>
+                    <div class="small mt-2 text-center" id="listStatus" role="status"></div>
                 </div>
             </div>
 
@@ -265,7 +387,11 @@ const fileInput = document.getElementById('fileInput');
 const selectedFileName = document.getElementById('selectedFileName');
 const processStatus = document.getElementById('processStatus');
 const saveStatus = document.getElementById('saveStatus');
+const reviewCard = document.getElementById('reviewCard');
+const plateList = document.getElementById('plateList');
+const listStatus = document.getElementById('listStatus');
 let selectedFile = null;
+let pendingPlates = [];
 
 function normalizePlate(value) {
     return value.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
@@ -349,26 +475,72 @@ document.getElementById('saveForm').addEventListener('submit', async (e) => {
         return;
     }
     finalText.setCustomValidity('');
-    const formData = new FormData();
-    formData.append('image_url', document.getElementById('imageUrl').value);
-    formData.append('detected_text', document.getElementById('detectedText').value);
-    formData.append('final_text', finalText.value);
+    pendingPlates.push({
+        detected_text: document.getElementById('detectedText').value,
+        final_text: finalText.value,
+        confidence: Number(document.getElementById('confidenceBadge').textContent.replace(/[^0-9.]/g, '')) || 0
+    });
+    renderPlateList();
+    resultCard.classList.add('d-none');
+    uploadForm.reset();
+    selectedFile = null;
+    selectedFileName.textContent = 'Ninguna imagen seleccionada';
+    saveStatus.textContent = 'Agregada a la lista.';
+    saveStatus.className = 'small mt-2 text-success';
+});
 
-    saveStatus.textContent = 'Guardando...';
-    saveStatus.className = 'small mt-2 text-primary';
+function renderPlateList() {
+    reviewCard.classList.toggle('d-none', pendingPlates.length === 0);
+    plateList.innerHTML = '';
+    if (!pendingPlates.length) {
+        plateList.innerHTML = '<div class="empty-list">Aún no hay patentes en la lista.</div>';
+        return;
+    }
+
+    const counts = pendingPlates.reduce((all, item) => {
+        all[item.final_text] = (all[item.final_text] || 0) + 1;
+        return all;
+    }, {});
+    pendingPlates.forEach((item, index) => {
+        const row = document.createElement('div');
+        row.className = `plate-row ${counts[item.final_text] > 1 ? 'duplicate-row' : ''}`;
+        row.innerHTML = `<div><div class="plate-value">${item.final_text}</div><div class="plate-meta">Confianza: ${item.confidence}%${counts[item.final_text] > 1 ? ' · Repetida' : ''}</div></div><button type="button" class="btn btn-sm btn-outline-danger" data-index="${index}">Eliminar</button>`;
+        row.querySelector('button').addEventListener('click', () => {
+            pendingPlates.splice(index, 1);
+            renderPlateList();
+        });
+        plateList.appendChild(row);
+    });
+}
+
+document.getElementById('btnRemoveDuplicates').addEventListener('click', () => {
+    const unique = new Map();
+    pendingPlates.forEach((item) => unique.set(item.final_text, item));
+    pendingPlates = [...unique.values()];
+    renderPlateList();
+    listStatus.textContent = 'Repetidas eliminadas.';
+    listStatus.className = 'small mt-2 text-center text-success';
+});
+
+document.getElementById('btnConfirmList').addEventListener('click', async () => {
+    if (!pendingPlates.length) return;
+    listStatus.textContent = 'Guardando lista...';
+    listStatus.className = 'small mt-2 text-center text-primary';
     try {
-        const res = await fetch('/api/save', { method: 'POST', body: formData });
+        const res = await fetch('/api/save-batch', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ records: pendingPlates })
+        });
         const data = await res.json();
-        if (!res.ok) throw new Error(data.message || 'No se pudo guardar la patente.');
-        saveStatus.textContent = 'Patente guardada correctamente.';
-        saveStatus.className = 'small mt-2 text-success';
-        resultCard.classList.add('d-none');
-        uploadForm.reset();
-        selectedFile = null;
-        selectedFileName.textContent = 'Ninguna imagen seleccionada';
+        if (!res.ok) throw new Error(data.message || 'No se pudo guardar la lista.');
+        pendingPlates = [];
+        renderPlateList();
+        listStatus.textContent = 'Lista guardada correctamente.';
+        listStatus.className = 'small mt-2 text-center text-success';
     } catch (error) {
-        saveStatus.textContent = error.message;
-        saveStatus.className = 'small mt-2 text-danger';
+        listStatus.textContent = error.message;
+        listStatus.className = 'small mt-2 text-center text-danger';
     }
 });
 </script>

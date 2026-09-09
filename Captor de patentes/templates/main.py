@@ -7,7 +7,7 @@ from urllib.request import Request as UrlRequest, urlopen
 from urllib.error import HTTPError, URLError
 import numpy as np
 from PIL import Image
-from fastapi import FastAPI, File, UploadFile, Form, Request
+from fastapi import FastAPI, Body, File, UploadFile, Form, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -38,7 +38,7 @@ def append_to_sheet(row_data: list):
     
     body = {'values': [row_data]}
     
-    return sheet.values().append(
+    return sheet. values().append(
         spreadsheetId=SPREADSHEET_ID,
         range=RANGE_NAME,
         valueInputOption='USER_ENTERED',
@@ -74,6 +74,37 @@ reader = None
 def normalize_plate(value: str) -> str:
     """Conserva solo letras y números y normaliza el texto a mayúsculas."""
     return re.sub(r"[^A-Za-z0-9]", "", value).upper()
+
+def persist_record(detected_text: str, final_text: str, confidence: float = 0.0) -> dict:
+    """Guarda un registro sin conservar la imagen original."""
+    detected_text = normalize_plate(detected_text)
+    final_text = normalize_plate(final_text)
+    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    is_corrected = detected_text != final_text
+
+    record = {
+        "timestamp": timestamp,
+        "image_url": "",
+        "detected_text": detected_text,
+        "final_text": final_text,
+        "confidence": confidence,
+        "is_corrected": "SI" if is_corrected else "NO",
+        "status": "CONFIRMADA"
+    }
+    row_data = [
+        timestamp,
+        final_text,
+        detected_text,
+        "SI" if is_corrected else "NO",
+        "",
+        "CONFIRMADA"
+    ]
+
+    if N8N_WEBHOOK_URL:
+        send_to_n8n(record)
+    else:
+        append_to_sheet(row_data)
+    return record
 
 def select_plate_result(results: list) -> tuple[str, float]:
     """Elige el texto más probable de ser una patente entre los resultados OCR."""
@@ -141,35 +172,8 @@ async def save_plate(
     detected_text: str = Form(...),
     final_text: str = Form(...)
 ):
-    detected_text = normalize_plate(detected_text)
-    final_text = normalize_plate(final_text)
-    is_corrected = (detected_text != final_text)
-    timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    
-    record = {
-        "timestamp": timestamp,
-        "image_url": image_url,
-        "detected_text": detected_text,
-        "final_text": final_text,
-        "is_corrected": "SI" if is_corrected else "NO",
-        "status": "CONFIRMADA"
-    }
-    
-    # Formatear datos de respaldo por si no se usa n8n
-    row_data = [
-        timestamp,
-        final_text,
-        detected_text,
-        "SI" if is_corrected else "NO",
-        image_url,
-        "CONFIRMADA"
-    ]
-    
     try:
-        if N8N_WEBHOOK_URL:
-            send_to_n8n(record)
-        else:
-            append_to_sheet(row_data)
+        record = persist_record(detected_text, final_text)
     except Exception as e:
         print(f"Error al guardar el registro: {e}")
         return JSONResponse(
@@ -182,3 +186,29 @@ async def save_plate(
     print("-----------------------------------\n")
     
     return JSONResponse(status_code=200, content={"status": "success", "data": record})
+
+@app.post("/api/save-batch")
+async def save_batch(payload: dict = Body(...)):
+    records = payload.get("records", [])
+    if not isinstance(records, list) or not records:
+        return JSONResponse(status_code=400, content={"status": "error", "message": "La lista está vacía."})
+
+    saved_records = []
+    try:
+        for item in records:
+            final_text = normalize_plate(str(item.get("final_text", "")))
+            if not final_text:
+                continue
+            saved_records.append(persist_record(
+                str(item.get("detected_text", "")),
+                final_text,
+                float(item.get("confidence", 0))
+            ))
+    except Exception as e:
+        print(f"Error al guardar la lista: {e}")
+        return JSONResponse(
+            status_code=502,
+            content={"status": "error", "message": f"No se pudo guardar la lista: {e}"}
+        )
+
+    return JSONResponse(status_code=200, content={"status": "success", "data": saved_records})

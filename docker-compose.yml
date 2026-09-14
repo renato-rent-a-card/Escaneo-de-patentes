@@ -1,0 +1,31 @@
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./templates:/app
+      - easyocr-cache:/root/.EasyOCR
+    environment:
+      TZ: America/Santiago
+      N8N_WEBHOOK_URL: ${N8N_WEBHOOK_URL:-https://chileanrentacar.app.n8n.cloud/webhook/guardar-patente}
+      CORS_ORIGINS: ${CORS_ORIGINS:-capacitor://localhost,http://localhost}
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    depends_on:
+      - web
+    command: tunnel --no-autoupdate --url http://web:8000
+
+  tunnel-stable:
+    image: cloudflare/cloudflared:latest
+    profiles: [stable]
+    restart: unless-stopped
+    depends_on:
+      - web
+    command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TUNNEL_TOKEN:-}
+
+volumes:
+  easyocr-cache:
